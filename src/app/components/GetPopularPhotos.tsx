@@ -10,37 +10,42 @@ export default function GetPopularPhotos() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true); // new
+  const [hasMore, setHasMore] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+  const [searchQuery, setSearchQuery] = useState(""); // new
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     loadPhotos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, searchQuery]);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, hasMore]);
+
   async function loadPhotos() {
     if (!hasMore) return;
 
     setLoading(true);
     try {
-      const newPhotos = await getPhotos(page);
-      setPhotos((prev) => [...prev, ...newPhotos]);
+      const newPhotos = await getPhotos(page, 20, searchQuery); // pass search query
+      if (page === 1) {
+        setPhotos(newPhotos); // replace photos on new search
+      } else {
+        setPhotos((prev) => [...prev, ...newPhotos]);
+      }
+      setHasMore(newPhotos.length > 0);
     } catch (err: unknown) {
       console.error("Error fetching photos:", err);
-
-      // Check if it's an Error object
       if (err instanceof Error) {
-        // If rate limit exceeded, loop current photos
         if (err.message.includes("Rate Limit Exceeded")) {
           setPhotos((prev) => [...prev, ...prev]);
           setHasMore(true);
         } else {
-          setHasMore(false); // stop on real errors
+          setHasMore(false);
         }
       } else {
         setHasMore(false);
@@ -60,12 +65,36 @@ export default function GetPopularPhotos() {
     }
   }
 
+  function handleSearch(e: React.ChangeEvent<HTMLInputElement>) {
+    setSearchQuery(e.target.value);
+    setPage(1);
+    setIsSearching(e.target.value.trim().length > 0);
+  }
+
   return (
     <>
+      {/* Popular or Search Title */}
+      <p className="text-xl font-semibold mb-4 text-center mx-auto mt-6">
+        Popular Images
+      </p>
+
+      {/* Search input */}
+      <div className="text-center mt-6 mb-4">
+        <input
+          type="text"
+          placeholder="Search images..."
+          value={searchQuery}
+          onChange={handleSearch}
+          className="border border-gray-300 rounded-lg px-4 py-2 w-80 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+      </div>
+      <p className="text-xl font-semibold mb-4 text-center mx-auto mt-6">
+        {isSearching ? `Search Results for "${searchQuery}"` : ""}
+      </p>
       <main className="p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {photos.map((photo, index) => (
+        {photos.slice(0, 20).map((photo, index) => (
           <div
-            key={`${photo.id}-${index}`} // unique key
+            key={`${photo.id}-${index}`}
             className="overflow-hidden rounded-xl shadow-md bg-white cursor-pointer"
             onClick={() => setSelectedPhoto(photo)}
           >
@@ -79,6 +108,32 @@ export default function GetPopularPhotos() {
           </div>
         ))}
       </main>
+
+      {photos.length > 20 && (
+        <>
+          <p className="text-xl font-semibold mt-8 mb-4 text-center mx-auto">
+            More Images
+          </p>
+
+          <main className="p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {photos.slice(20).map((photo, index) => (
+              <div
+                key={`${photo.id}-${index + 20}`}
+                className="overflow-hidden rounded-xl shadow-md bg-white cursor-pointer"
+                onClick={() => setSelectedPhoto(photo)}
+              >
+                <Image
+                  src={photo.urls.small}
+                  alt={photo.alt_description || "Unsplash image"}
+                  width={400}
+                  height={240}
+                  className="w-full h-60 object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            ))}
+          </main>
+        </>
+      )}
 
       {loading && <p className="text-center mt-4">Loading...</p>}
       {!hasMore && <p className="text-center mt-4">No more images</p>}
