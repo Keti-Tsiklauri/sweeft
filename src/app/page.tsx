@@ -1,7 +1,8 @@
-export default function Home() {
+import Photoes from "./components/GetPopularPhotoes";
+export default function Main() {
   return (
     <div>
-      <p className="bg-[black] text-white">test</p>
+      <Photoes />
     </div>
   );
 }
