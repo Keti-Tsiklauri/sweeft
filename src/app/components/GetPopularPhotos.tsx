@@ -15,7 +15,7 @@ export default function GetPopularPhotos() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState(""); // term to search
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Load search history from localStorage
   useEffect(() => {
@@ -27,13 +27,11 @@ export default function GetPopularPhotos() {
 
   useEffect(() => {
     loadPhotos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, searchTerm]); // <-- only reload when page or searchTerm changes
+  }, [page, searchTerm]);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, hasMore]);
 
   async function loadPhotos() {
@@ -41,7 +39,7 @@ export default function GetPopularPhotos() {
 
     setLoading(true);
     try {
-      const newPhotos = await getPhotos(page, 20, searchTerm); // use searchTerm here
+      const newPhotos = await getPhotos(page, 20, searchTerm);
       if (page === 1) {
         setPhotos(newPhotos);
       } else {
@@ -49,7 +47,6 @@ export default function GetPopularPhotos() {
       }
       setHasMore(newPhotos.length > 0);
     } catch (err: unknown) {
-      console.error("Error fetching photos:", err);
       if (err instanceof Error) {
         if (err.message.includes("Rate Limit Exceeded")) {
           setPhotos((prev) => [...prev, ...prev]);
@@ -77,7 +74,7 @@ export default function GetPopularPhotos() {
 
   return (
     <>
-      {/* Popular or Search Title */}
+      {/* Popular  Title */}
       <p className="text-xl font-semibold mb-4 text-center mx-auto mt-6">
         Popular Images
       </p>
@@ -88,7 +85,7 @@ export default function GetPopularPhotos() {
           type="text"
           placeholder="Search images..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)} // just update input
+          onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               const term = searchQuery.trim();

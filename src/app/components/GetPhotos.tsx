@@ -36,7 +36,7 @@ export async function getPhotos(
   const data = await res.json();
   const results: Photo[] = normalizedQuery ? data.results : data;
 
-  // ✅ Store in cache
+  //  Store in cache
   searchCache[cacheKey] = results;
 
   return [...results]; // always return a new array

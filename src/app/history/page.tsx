@@ -29,14 +29,13 @@ export default function HistoryPage() {
         const newPhotos = await getPhotos(page, 20, selectedQuery);
 
         if (page === 1) {
-          setPhotos(newPhotos); // replace on new search
+          setPhotos(newPhotos);
         } else {
-          setPhotos((prev) => [...prev, ...newPhotos]); // append on scroll
+          setPhotos((prev) => [...prev, ...newPhotos]);
         }
 
         setHasMore(newPhotos.length > 0);
       } catch (err) {
-        console.error(err);
         setHasMore(false);
       } finally {
         setLoading(false);
@@ -63,15 +62,12 @@ export default function HistoryPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [loading, hasMore]);
 
-  // Reset state before new query
-  // Reset state before new query
   function handleQueryClick(query: string) {
     setPhotos([]);
     setPage(1);
     setHasMore(true);
-    setSelectedQuery(""); // reset first to force useEffect trigger
+    setSelectedQuery("");
 
-    // Ensure state updates happen after reset
     setTimeout(() => {
       setSelectedQuery(query);
     }, 0);
