@@ -29,9 +29,9 @@ export default function HistoryPage() {
         const newPhotos = await getPhotos(page, 20, selectedQuery);
 
         if (page === 1) {
-          setPhotos(newPhotos);
+          setPhotos(newPhotos); // replace on new search
         } else {
-          setPhotos((prev) => [...prev, ...newPhotos]);
+          setPhotos((prev) => [...prev, ...newPhotos]); // append on scroll
         }
 
         setHasMore(newPhotos.length > 0);
@@ -63,17 +63,25 @@ export default function HistoryPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [loading, hasMore]);
 
-  // When selecting a query, reset page and photos
+  // Reset state before new query
+  // Reset state before new query
   function handleQueryClick(query: string) {
-    setSelectedQuery(query);
     setPhotos([]);
     setPage(1);
     setHasMore(true);
+    setSelectedQuery(""); // reset first to force useEffect trigger
+
+    // Ensure state updates happen after reset
+    setTimeout(() => {
+      setSelectedQuery(query);
+    }, 0);
   }
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Search History</h1>
+      <h1 className="text-2xl font-semibold mb-4 text-center">
+        Search History
+      </h1>
 
       {history.length === 0 && <p>No search history yet.</p>}
 
@@ -95,9 +103,7 @@ export default function HistoryPage() {
             Results for {selectedQuery}
           </h2>
 
-          {photos.length === 0 && !loading && (
-            <p>No cached results available.</p>
-          )}
+          {photos.length === 0 && !loading && <p>No results found.</p>}
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {photos.map((photo, index) => (
@@ -117,7 +123,9 @@ export default function HistoryPage() {
           </div>
 
           {loading && <p className="text-center mt-4">Loading...</p>}
-          {!hasMore && <p className="text-center mt-4">No more images</p>}
+          {!hasMore && !loading && (
+            <p className="text-center mt-4">No more images</p>
+          )}
         </>
       )}
     </div>

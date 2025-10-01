@@ -1,5 +1,6 @@
 import "./globals.css";
 import Navigation from "./components/Navigation";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -7,8 +8,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <Navigation />
-      <body>{children}</body>
+      <body className="bg-[#eeeceb]">
+        <Navigation />
+        {children}
+      </body>
     </html>
   );
 }

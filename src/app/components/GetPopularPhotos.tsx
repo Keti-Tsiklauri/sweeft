@@ -15,7 +15,6 @@ export default function GetPopularPhotos() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
-
   const [searchTerm, setSearchTerm] = useState(""); // term to search
 
   // Load search history from localStorage
@@ -42,7 +41,7 @@ export default function GetPopularPhotos() {
 
     setLoading(true);
     try {
-      const newPhotos = await getPhotos(page, 20, searchQuery);
+      const newPhotos = await getPhotos(page, 20, searchTerm); // use searchTerm here
       if (page === 1) {
         setPhotos(newPhotos);
       } else {
@@ -76,16 +75,13 @@ export default function GetPopularPhotos() {
     }
   }
 
-  function handleSearch(e: React.ChangeEvent<HTMLInputElement>) {
-    const value = e.target.value;
-    setSearchQuery(value);
-    setPage(1);
-    setIsSearching(value.trim().length > 0);
-  }
-
   return (
     <>
-      {/* Search input */}
+      {/* Popular or Search Title */}
+      <p className="text-xl font-semibold mb-4 text-center mx-auto mt-6">
+        Popular Images
+      </p>
+
       {/* Search input */}
       <div className="text-center mt-6 mb-4">
         <input
@@ -95,7 +91,7 @@ export default function GetPopularPhotos() {
           onChange={(e) => setSearchQuery(e.target.value)} // just update input
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              const term = searchQuery.trim(); // define term here
+              const term = searchQuery.trim();
               if (!term) return; // ignore empty search
 
               setSearchTerm(term); // trigger search
@@ -114,13 +110,12 @@ export default function GetPopularPhotos() {
               );
             }
           }}
-          className="border border-gray-300 rounded-lg px-4 py-2 w-80 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="border border-gray-300 rounded-lg px-4 py-2 w-80 focus:outline-none focus:ring-2 focus:ring-[#154c79]"
         />
       </div>
 
-      {/* Popular or Search Title */}
       <p className="text-xl font-semibold mb-4 text-center mx-auto mt-6">
-        {isSearching ? `Search Results for "${searchQuery}"` : "Popular Images"}
+        {isSearching ? `Search Results for "${searchQuery}"` : ""}
       </p>
 
       {/* Images */}
