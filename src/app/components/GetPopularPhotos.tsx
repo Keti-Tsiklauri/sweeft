@@ -12,13 +12,24 @@ export default function GetPopularPhotos() {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
-  const [searchQuery, setSearchQuery] = useState(""); // new
+  const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+
+  const [searchTerm, setSearchTerm] = useState(""); // term to search
+
+  // Load search history from localStorage
+  useEffect(() => {
+    const storedHistory = localStorage.getItem("searchHistory");
+    if (storedHistory) {
+      setSearchHistory(JSON.parse(storedHistory));
+    }
+  }, []);
 
   useEffect(() => {
     loadPhotos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, searchQuery]);
+  }, [page, searchTerm]); // <-- only reload when page or searchTerm changes
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
@@ -31,9 +42,9 @@ export default function GetPopularPhotos() {
 
     setLoading(true);
     try {
-      const newPhotos = await getPhotos(page, 20, searchQuery); // pass search query
+      const newPhotos = await getPhotos(page, 20, searchQuery);
       if (page === 1) {
-        setPhotos(newPhotos); // replace photos on new search
+        setPhotos(newPhotos);
       } else {
         setPhotos((prev) => [...prev, ...newPhotos]);
       }
@@ -66,31 +77,53 @@ export default function GetPopularPhotos() {
   }
 
   function handleSearch(e: React.ChangeEvent<HTMLInputElement>) {
-    setSearchQuery(e.target.value);
+    const value = e.target.value;
+    setSearchQuery(value);
     setPage(1);
-    setIsSearching(e.target.value.trim().length > 0);
+    setIsSearching(value.trim().length > 0);
   }
 
   return (
     <>
-      {/* Popular or Search Title */}
-      <p className="text-xl font-semibold mb-4 text-center mx-auto mt-6">
-        Popular Images
-      </p>
-
+      {/* Search input */}
       {/* Search input */}
       <div className="text-center mt-6 mb-4">
         <input
           type="text"
           placeholder="Search images..."
           value={searchQuery}
-          onChange={handleSearch}
+          onChange={(e) => setSearchQuery(e.target.value)} // just update input
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              const term = searchQuery.trim(); // define term here
+              if (!term) return; // ignore empty search
+
+              setSearchTerm(term); // trigger search
+              setPage(1);
+              setIsSearching(true);
+
+              // Update search history
+              const updatedHistory = [
+                term,
+                ...JSON.parse(localStorage.getItem("searchHistory") || "[]"),
+              ];
+              setSearchHistory(updatedHistory);
+              localStorage.setItem(
+                "searchHistory",
+                JSON.stringify(updatedHistory)
+              );
+            }
+          }}
           className="border border-gray-300 rounded-lg px-4 py-2 w-80 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
       </div>
+
+      {/* Popular or Search Title */}
       <p className="text-xl font-semibold mb-4 text-center mx-auto mt-6">
-        {isSearching ? `Search Results for "${searchQuery}"` : ""}
+        {isSearching ? `Search Results for "${searchQuery}"` : "Popular Images"}
       </p>
+
+      {/* Images */}
       <main className="p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {photos.slice(0, 20).map((photo, index) => (
           <div
