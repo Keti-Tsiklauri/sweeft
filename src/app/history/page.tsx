@@ -13,6 +13,29 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
+  // ✅ Smooth scroll globally including arrow keys
+  useEffect(() => {
+    document.documentElement.style.scrollBehavior = "smooth";
+
+    function handleKeyScroll(e: KeyboardEvent) {
+      const step = 50; // smaller = slower scroll
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        window.scrollBy({ top: step, left: 0, behavior: "smooth" });
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        window.scrollBy({ top: -step, left: 0, behavior: "smooth" });
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyScroll);
+
+    return () => {
+      document.documentElement.style.scrollBehavior = "auto";
+      window.removeEventListener("keydown", handleKeyScroll);
+    };
+  }, []);
+
   // Load search history from localStorage
   useEffect(() => {
     const storedHistory = localStorage.getItem("searchHistory");

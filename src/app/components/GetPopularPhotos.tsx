@@ -17,6 +17,29 @@ export default function GetPopularPhotos() {
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
+  // ✅ Smooth scroll globally
+  useEffect(() => {
+    document.documentElement.style.scrollBehavior = "smooth";
+
+    function handleKeyScroll(e: KeyboardEvent) {
+      const step = 50; // 👈 smaller = slower scroll
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        window.scrollBy({ top: step, left: 0, behavior: "smooth" });
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        window.scrollBy({ top: -step, left: 0, behavior: "smooth" });
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyScroll);
+
+    return () => {
+      document.documentElement.style.scrollBehavior = "auto";
+      window.removeEventListener("keydown", handleKeyScroll);
+    };
+  }, []);
+
   // Load search history from localStorage
   useEffect(() => {
     const storedHistory = localStorage.getItem("searchHistory");
@@ -95,11 +118,17 @@ export default function GetPopularPhotos() {
               setPage(1);
               setIsSearching(true);
 
-              // Update search history
-              const updatedHistory = [
-                term,
-                ...JSON.parse(localStorage.getItem("searchHistory") || "[]"),
-              ];
+              // ✅ allow duplicates, but not consecutive ones
+              const existingHistory = JSON.parse(
+                localStorage.getItem("searchHistory") || "[]"
+              ) as string[];
+
+              if (existingHistory[0]?.toLowerCase() === term.toLowerCase()) {
+                return; // skip if same as last search
+              }
+
+              const updatedHistory = [term, ...existingHistory];
+
               setSearchHistory(updatedHistory);
               localStorage.setItem(
                 "searchHistory",
